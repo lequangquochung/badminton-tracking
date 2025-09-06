@@ -15,7 +15,7 @@ export async function getPlayers(): Promise<PlayerDto[]> {
             winRate: player.winRate,
             score: player.score,
             matchesPlayed: player.matchesPlayed,
-            matchesWon: player.matchesPlayed,
+            matchesWon: player.matchesWon,
             matchesLost: player.matchesLost,
             partnerInfo: player.partnerInfo
         }) as PlayerDto);

@@ -14,45 +14,24 @@ import Players from '../players/players';
 import HeadToHead from '../head-to-head/head-to-head';
 import { IMatch } from '../models/match.model';
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
-import { setDate } from 'date-fns';
+import { set, setDate } from 'date-fns';
 import { format } from "date-fns";
 import { Plus, Trophy, Users } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
+import { getPlayers } from '../services/players.service';
+import { PlayerDto } from '../dtos/playerDto';
+import { createMatch } from '../services/matches.service';
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import toast from 'react-hot-toast';
+import { isWinner } from '../match-history/component/match-history';
+import { E_WINNER } from '../utils/utils';
+
 
 export default function Dashboard() {
-
   // init
   const [activeTab, setActiveTab] = useState("history");
   // get total match
   const [totalMatch, setTotalMatch] = useState<number>();
-  const [date, setDate] = useState<Date>()
-  // create match
-  const [formData, setFormData] = useState<IMatch>({
-    firstPlayer: "",
-    secPlayer: "",
-    thirdPlayer: "",
-    fourthPlayer: "",
-    firstScore: 0,
-    secScore: 0,
-    matchDay: new Date(),
-    winner: [],
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    console.log(name, value);
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name === "firstScore" || name === "secScore"
-          ? Number(value)
-          : value,
-    })
-    );
-  };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,31 +44,104 @@ export default function Dashboard() {
     }
   };
 
+  // create match
+  const [formData, setFormData] = useState<IMatch>({
+    firstPlayer: "",
+    secPlayer: "",
+    thirdPlayer: "",
+    fourthPlayer: "",
+    firstScore: 0,
+    secScore: 0,
+    matchDay: new Date(),
+    winner: [],
+  });
 
-  // submit form
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    console.log("formData:", formData.get("winner"));
+  const initialForm: IMatch = {
+    firstPlayer: "",
+    secPlayer: "",
+    thirdPlayer: "",
+    fourthPlayer: "",
+    firstScore: 0,
+    secScore: 0,
+    winner: [],
+    matchDay: new Date(),
   };
 
-  // const [matches, setMatches] = useState<Match[]>(initialMatches);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPlayer1, setSelectedPlayer1] = useState('');
-  const [selectedPlayer2, setSelectedPlayer2] = useState('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCreatedMatch, setIsCreatedMatch] = useState<boolean>(false);
+  // submit form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // ngăn reload trang mặc định
+    const winner: string[] = [];
+    if (isWinner(formData.firstScore, formData.secScore) === E_WINNER.FIRST_TEAM) {
+      winner.push(formData.firstPlayer, formData.secPlayer);
+    } else {
+      winner.push(formData.thirdPlayer, formData.fourthPlayer);
+    }
+
+    console.log("Form data:", {
+      ...formData,
+      matchDay: formData.matchDay
+        ? formData.matchDay.toISOString().split("T")[0] // yyyy-MM-dd
+        : null,
+      winner: winner
+    });
+
+    // call API ở đây
+    // await fetch("/api/matches", { method: "POST", body: JSON.stringify(formData) })
+    const result = await createMatch(formData);
+    if (result?.statusCode) {
+      setIsDialogOpen(false);
+      setIsLoading(false);
+      setFormData(initialForm);
+      setIsCreatedMatch(true);
+      toast.success("Completed");
+    } else {
+      toast.error("Error");
+    }
+  };
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-
   const handleDataFromChild = (data: number) => {
-    console.log("Data từ Child:", data);
     setTotalMatch(data);
   };
 
+  /***
+   * logic selected players
+   */
+  const [players, setPlayers] = useState<PlayerDto[]>([]);
+
+  const handleChange = (key: keyof IMatch, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const getAvailablePlayers = (currentKey: keyof IMatch) => {
+    const selected = [
+      formData.firstPlayer,
+      formData.secPlayer,
+      formData.thirdPlayer,
+      formData.fourthPlayer,
+    ].filter((id) => id !== "" && id !== formData[currentKey]);
+
+    return players.filter((p) => !selected.includes(p.name));
+  };
+
   const [playerCount, setPlayerCount] = useState(0);
-  const getCountPlayer = (countPlayer: number) => {
-    setPlayerCount(countPlayer);
+  const getAllPlayer = async () => {
+    try {
+      const result = await getPlayers();
+      setPlayers(result);
+      setPlayerCount(result.length || 0);
+    } catch (error) { }
   }
+
+  useEffect(() => {
+    getAllPlayer();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -102,7 +154,12 @@ export default function Dashboard() {
               <p className="text-slate-600 text-lg">Track matches, analyze performance, and compare players</p>
             </div>
             {/* create new match */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+              setIsDialogOpen(isOpen);
+              if (isOpen) {
+                setFormData(initialForm); // reset form mỗi khi mở
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
                   <Plus className="mr-2 h-5 w-5" />
@@ -123,31 +180,38 @@ export default function Dashboard() {
                   <div className="grid gap-4 grid-cols-2 pt-4">
                     <div className="grid gap-2">
                       <Label htmlFor="player1">Player 1</Label>
-                      <Select value={formData.firstPlayer} onValueChange={(val) =>
-                        setFormData((prev) => ({ ...prev, firstPlayer: val }))}>
+                      <Select
+                        value={formData.firstPlayer}
+                        onValueChange={(val) => handleChange("firstPlayer", val)}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select player 1" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* {players.map(player => (
-                          <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                        ))} */}
+                          {getAvailablePlayers("firstPlayer").map((p) => (
+                            <SelectItem key={p.id} value={p.name}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="player1">Player 2</Label>
-                      <Select value={formData.secPlayer} onValueChange={(val) => {
-                        setFormData((prev) => ({ ...prev, secPlayer: val }))
-                      }}>
+                      <Select
+                        value={formData.secPlayer}
+                        onValueChange={(val) => handleChange("secPlayer", val)}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select player 2" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* {players.map(player => (
-                          <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                        ))} */}
+                          {getAvailablePlayers("secPlayer").map((p) => (
+                            <SelectItem key={p.id} value={p.name}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -157,32 +221,38 @@ export default function Dashboard() {
                   <div className="grid gap-4 pt-4 grid-cols-2">
                     <div className="grid gap-2">
                       <Label htmlFor="player2">Player 3</Label>
-                      <Select value={formData.thirdPlayer} onValueChange={(val) => {
-                        setFormData((prev) => ({ ...prev, thirdPlayer: val }))
-                      }}>
+                      <Select
+                        value={formData.thirdPlayer}
+                        onValueChange={(val) => handleChange("thirdPlayer", val)}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select player 2" />
+                          <SelectValue placeholder="Select player 3" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* {players.filter(p => p.name !== newMatch.player1).map(player => (
-                          <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                        ))} */}
+                          {getAvailablePlayers("thirdPlayer").map((p) => (
+                            <SelectItem key={p.id} value={p.name}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="player2">Player 4</Label>
-                      <Select value={formData.fourthPlayer} onValueChange={(val) => {
-                        setFormData((prev) => ({ ...prev, fourthPlayer: val }))
-                      }}>
+                      <Select
+                        value={formData.fourthPlayer}
+                        onValueChange={(val) => handleChange("fourthPlayer", val)}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select player 2" />
+                          <SelectValue placeholder="Select player 4" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* {players.filter(p => p.name !== newMatch.player1).map(player => (
-                          <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                        ))} */}
+                          {getAvailablePlayers("fourthPlayer").map((p) => (
+                            <SelectItem key={p.id} value={p.name}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -214,7 +284,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 mb-5">
                     <Label htmlFor="date">Date</Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -234,26 +304,25 @@ export default function Dashboard() {
                           mode="single"
                           selected={formData.matchDay}
                           onSelect={(date) =>
-                            setFormData((prev) => ({ ...prev, matchDate: date }))
+                            setFormData((prev) => ({
+                              ...prev,
+                              matchDay: date
+                            }))
                           }
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
-                    {/* <Input
-                      id="date"
-                      type="date"
-                      value={formData.matchDay}
-                      onChange={handleChange}
-                    /> */}
                   </div>
                   <Button
-                    // onClick={handleCreateMatch}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors"
-
-                  >
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
                     Create Match
+                    <>
+                      {isLoading ? <Spinner /> : ""}
+                    </>
                   </Button>
+
                 </form>
 
               </DialogContent>
@@ -304,7 +373,7 @@ export default function Dashboard() {
           </TabsList>
 
           <TabsContent value={"matches"} className="space-y-6">
-            <MatchHistory onSendTotalMatch={handleDataFromChild} onSendPlayerCount={getCountPlayer} activeTab={"history"} />
+            <MatchHistory setUpdateNewMatches={setIsCreatedMatch} updateNewMatches={isCreatedMatch} onSendTotalMatch={handleDataFromChild} activeTab={"history"} />
           </TabsContent>
 
           <TabsContent value={"players"} className="space-y-6">

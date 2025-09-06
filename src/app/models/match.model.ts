@@ -7,5 +7,5 @@ export interface IMatch {
     firstScore: number;
     secScore: number;
     winner: string[];
-    matchDay: Date;
+    matchDay: Date | undefined;
 }

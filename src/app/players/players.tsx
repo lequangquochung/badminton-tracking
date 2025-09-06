@@ -42,9 +42,14 @@ export default function Players({ activeTab }: PlayersProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4">
-                            {players
+                            {players.sort((a, b) => {
+                                if (b.winRate !== a.winRate) {
+                                    return parseFloat(b.winRate) - parseFloat(a.winRate);
+                                }
+                                return b.score - a.score;
+                            })
                                 .map((player, index) => (
-                                    <div
+                                    < div
                                         key={player.id}
                                         className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
                                     >
@@ -54,7 +59,7 @@ export default function Players({ activeTab }: PlayersProps) {
                                                 {index !== 0 && <span className="font-bold text-blue-600">#{index + 1}</span>}
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-slate-900">{player.name}</h3>
+                                                <h3 className="font-semibold text-slate-900">{player.name} - {player.score}</h3>
                                                 <p className="text-sm text-slate-600">{player.matchesPlayed} matches played</p>
                                             </div>
                                         </div>
@@ -68,7 +73,7 @@ export default function Players({ activeTab }: PlayersProps) {
                                 ))}
                         </div>
                     </CardContent>
-                </Card>}
+                </Card >}
         </>
     )
 }
