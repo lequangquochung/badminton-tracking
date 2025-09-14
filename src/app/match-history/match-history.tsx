@@ -35,7 +35,6 @@ export default function MatchHistory({ activeTab, onSendTotalMatch, updateNewMat
             // loading spinner
             setLoading(true);
             const response = await getAll(payload);
-            response.sort((firstMatch: MatchesDto, nextMatch: MatchesDto) => firstMatch.matchDay.getTime() - nextMatch.matchDay.getTime());
             onSendTotalMatch(response?.length || 0);
             setMatches(response);
         } catch (error) { }
