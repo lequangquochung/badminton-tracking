@@ -250,7 +250,7 @@ export default function HeadToHead({ activeTab, players }: HeadToHeadProps) {
                             </CardHeader> :
                             <CardContent>
                                 <div className="flex">
-                                    <div className={`flex flex-col pb-5 mb-3 flex-1 justify-around`}>
+                                    <div className={`flex flex-col pb-5 flex-1 justify-around`}>
                                         <div className={`py-4 flex items-center`}>
                                             <Avatar className="size-16 mr-5">
                                                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
@@ -272,26 +272,7 @@ export default function HeadToHead({ activeTab, players }: HeadToHeadProps) {
                                         </div>
                                     </div>
 
-                                    {/* <div className={`p-5`}>
-                                        <div className={`${style.titleMatches} text-center`}>
-                                            <Label>Matches PLayed</Label>
-                                            <p>{headToHeadMatches.historyByTeam.matchesPlayed}</p>
-                                        </div>
-                                        <div className={`${style.titleMatches} text-center flex`}>
-                                            <p className="text-xl font-semibold">{headToHeadMatches.historyByTeam.firstTeamPairWins}</p>
-                                            <Label className="px-5 font-mono text-xl font-semibold">Win Difference</Label>
-                                            <p className="text-xl font-semibold">{headToHeadMatches.historyByTeam.secTeamPairWins}</p>
-                                        </div>
-
-                                        <div className={`${style.titleMatches} text-center flex`}>
-                                            <p className="text-xl font-semibold">{`${headToHeadMatches.historyByTeam.winRateFirstTeamPair}%`}</p>
-                                            <Label className="px-5 font-mono text-xl font-semibold">Win Rate</Label>
-                                            <p className="text-xl font-semibold">{`${headToHeadMatches.historyByTeam.winRateSecTeamPair}%`}</p>
-                                        </div>
-
-                                    </div> */}
-
-                                    <div className={`flex flex-col content pb-5 mb-3 flex-1 justify-around `}>
+                                    <div className={`flex flex-col content pb-5 flex-1 justify-around `}>
                                         <div className={`py-4 flex items-center flex-row-reverse`}>
                                             <Avatar className="size-16 ml-5">
                                                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
@@ -302,7 +283,7 @@ export default function HeadToHead({ activeTab, players }: HeadToHeadProps) {
                                             </div>
                                         </div>
 
-                                         <div className={`py-4 flex items-center flex-row-reverse`}>
+                                        <div className={`${style.playerInfo} py-4 flex items-center flex-row-reverse`}>
                                             <Avatar className="size-16 ml-5">
                                                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                                                 <AvatarFallback>CN</AvatarFallback>
@@ -312,6 +293,24 @@ export default function HeadToHead({ activeTab, players }: HeadToHeadProps) {
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div className={`content`}>
+                                    <div className={`text-center py-3 ${style.matchesPlayerTitle} `}>
+                                        <Label className={`${style.textGray} px-5 font-mono text-xl font-semibold`}>Matches PLayed</Label>
+                                        <p className={`m-auto text-center ${style.matchesTitle} flex justify-center item-center`}>{headToHeadMatches.historyByTeam.matchesPlayed}</p>
+                                    </div>
+                                    <div className={`${style.titleMatches} py-3 text-center flex justify-evenly`}>
+                                        <p className={`text-xl font-semibold ${headToHeadMatches.historyByTeam.firstTeamPairWins > headToHeadMatches.historyByTeam.secTeamPairWins ? style.textGreen : style.textRed}`}>{headToHeadMatches.historyByTeam.firstTeamPairWins}</p>
+                                        <Label className={`${style.textGray} px-5 font-mono text-xl font-semibold`}>Win</Label>
+                                        <p className={`text-xl font-semibold ${headToHeadMatches.historyByTeam.firstTeamPairWins < headToHeadMatches.historyByTeam.secTeamPairWins ? style.textGreen : style.textRed}`}>{headToHeadMatches.historyByTeam.secTeamPairWins}</p>
+                                    </div>
+
+                                    <div className={`${style.titleMatches} py-3 text-center flex justify-evenly`}>
+                                        <p className={`${headToHeadMatches.historyByTeam.winRateFirstTeamPair > headToHeadMatches.historyByTeam.winRateSecTeamPair ? style.textGreen : style.textRed} text-xl font-semibold`} >{`${headToHeadMatches.historyByTeam.winRateFirstTeamPair}%`}</p>
+                                        <Label className={`${style.textGray} px-5 font-mono text-xl font-semibold`}>Win Rate</Label>
+                                        <p className={`${headToHeadMatches.historyByTeam.winRateFirstTeamPair < headToHeadMatches.historyByTeam.winRateSecTeamPair ? style.textGreen : style.textRed} text-xl font-semibold`} >{`${headToHeadMatches.historyByTeam.winRateSecTeamPair}%`}</p>
+                                    </div>
+
                                 </div>
 
                             </CardContent>
