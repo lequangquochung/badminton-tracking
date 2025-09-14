@@ -1,6 +1,7 @@
 import { MatchesDto } from "../dtos/matchDto";
-import { IMatch } from "../models/match.model";
-import { IRequestMatch } from "../models/request.model";
+import { IHeadToHead, IMatch } from "../models/match.model";
+import { IRequestHeadToHead, IRequestMatch } from "../models/request.model";
+import { MatchResponse } from "../models/response.model";
 
 export async function getAll(payload: IRequestMatch): Promise<MatchesDto[]> {
     try {
@@ -48,6 +49,26 @@ export async function createMatch(payload: IMatch) {
 
         return await result.json();
     } catch (error) {
-        console.error("Error fetching matches:", error);
+        console.error("Failed to create match:", error);
+    }
+}
+
+export async function getPairRate(payload: IRequestHeadToHead): Promise<MatchResponse<IHeadToHead>> {
+    try {
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/matches/pair-win-rate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        })
+        if (!result.ok) {
+            throw new Error("Failed to get win pair");
+        }
+
+        return await result.json();
+    } catch (error) {
+        console.error("Failed to get win pair:", error);
+        return {} as MatchResponse<IHeadToHead>;
     }
 }

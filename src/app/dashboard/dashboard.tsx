@@ -1,29 +1,27 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import MatchHistory from '../match-history/match-history';
-import Players from '../players/players';
-import HeadToHead from '../head-to-head/head-to-head';
-import { IMatch } from '../models/match.model';
-import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
-import { set, setDate } from 'date-fns';
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover';
 import { format } from "date-fns";
 import { Plus, Trophy, Users } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { getPlayers } from '../services/players.service';
-import { PlayerDto } from '../dtos/playerDto';
-import { createMatch } from '../services/matches.service';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { PlayerDto } from '../dtos/playerDto';
+import HeadToHead from '../head-to-head/head-to-head';
 import { isWinner } from '../match-history/component/match-history';
+import MatchHistory from '../match-history/match-history';
+import { IMatch } from '../models/match.model';
+import Players from '../players/players';
+import { createMatch } from '../services/matches.service';
+import { getPlayers } from '../services/players.service';
 import { E_WINNER } from '../utils/utils';
 
 
@@ -78,19 +76,10 @@ export default function Dashboard() {
     } else {
       winner.push(formData.thirdPlayer, formData.fourthPlayer);
     }
-
-    console.log("Form data:", {
-      ...formData,
-      matchDay: formData.matchDay
-        ? formData.matchDay.toISOString().split("T")[0] // yyyy-MM-dd
-        : null,
-      winner: winner
-    });
-
-    // call API ở đây
-    // await fetch("/api/matches", { method: "POST", body: JSON.stringify(formData) })
+    formData.winner = winner;
+    
     const result = await createMatch(formData);
-    if (result?.statusCode) {
+    if (result?.statusCode === 200) {
       setIsDialogOpen(false);
       setIsLoading(false);
       setFormData(initialForm);
@@ -145,7 +134,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 lg:px-30 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -381,7 +370,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="head-to-head" className="space-y-6">
-            <HeadToHead activeTab={"headToHead"}></HeadToHead>
+            <HeadToHead players={players} activeTab={"headToHead"}></HeadToHead>
           </TabsContent>
         </Tabs>
       </div>

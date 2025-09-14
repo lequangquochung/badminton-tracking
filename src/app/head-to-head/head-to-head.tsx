@@ -1,128 +1,324 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@/components/ui/shadcn-io/combobox";
+import Spinner from "@/components/ui/spinner";
 import { Label } from "@radix-ui/react-label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select";
-import players from "../players/players";
+import { FormEvent, useState } from "react";
+import toast from 'react-hot-toast';
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { PlayerDto } from "../dtos/playerDto";
+import { IHeadToHead } from "../models/match.model";
+import { IRequestHeadToHead } from "../models/request.model";
+import { getPairRate } from "../services/matches.service";
+import { E_STATUS_CODE } from "../utils/utils";
+import style from "./head-to-head.module.scss";
+import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+
+
 type HeadToHeadProps = {
     activeTab: string;
+    players: PlayerDto[];
 }
-export default function HeadToHead({ activeTab }: HeadToHeadProps) {
+export default function HeadToHead({ activeTab, players }: HeadToHeadProps) {
+    const [headToHeadMatches, setHeadToHeadMatches] = useState<IHeadToHead>({
+        historyByTeam: {
+            matchesPlayed: 0,
+            firstTeamPairWins: 0,
+            secTeamPairWins: 0,
+            winRateFirstTeamPair: "",
+            winRateSecTeamPair: ""
+        }
+    });
+
+    const [playerSelected, setPlayerSelected] = useState({
+        firstPlayer: "",
+        secPlayer: "",
+        thirdPlayer: "",
+        fourthPlayer: "",
+    });
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [formData, setFormData] = useState({
+        firstPlayer: "",
+        secPlayer: "",
+        thirdPlayer: "",
+        fourthPlayer: "",
+    });
+
+    const checkRequire = () => {
+        if (!formData.firstPlayer ||
+            !formData.secPlayer ||
+            !formData.thirdPlayer ||
+            !formData.fourthPlayer
+        ) {
+            return true;
+        }
+    }
+
+    const getAvailablePlayers = (currentValue: string) => {
+        const selectedValues = Object.values(formData).filter(Boolean); // tất cả player đã chọn
+        return players.filter(
+            (p) => !selectedValues.includes(p.name) || p.name === currentValue
+        ).map((player) => {
+            return {
+                value: player.name,
+                label: player.name
+            }
+        });
+    }
+
+    const handleSelect = (key: keyof typeof formData, value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    };
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        const payload: IRequestHeadToHead = {
+            firstTeam: [formData.firstPlayer, formData.secPlayer],
+            secTeam: [formData.thirdPlayer, formData.fourthPlayer]
+        }
+        const result = await getPairRate(payload);
+        if (result?.statusCode === E_STATUS_CODE.OK) {
+            setHeadToHeadMatches(result.data);
+            setPlayerSelected(formData)
+            setIsLoading(false);
+            toast.success("Completed");
+        } else {
+            toast.error("Failed");
+        }
+    }
+
+    const [open, setOpen] = useState(false);
+
     return (
-        <Card className="bg-white shadow-lg border-0">
-            <CardHeader>
-                <CardTitle className="text-2xl">Head to Head Comparison</CardTitle>
-                <CardDescription>Compare performance between two players</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <Label htmlFor="player1-select">Player 1</Label>
-                        <Select value={selectedPlayer1} onValueChange={setSelectedPlayer1}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select first player" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {players.map(player => (
-                                    <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <Label htmlFor="player2-select">Player 2</Label>
-                        <Select value={selectedPlayer2} onValueChange={setSelectedPlayer2}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select second player" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {players.filter(p => p.name !== selectedPlayer1).map(player => (
-                                    <SelectItem key={player.id} value={player.name}>{player.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+        <>
+            <Card className="bg-white shadow-lg border-0">
+                <CardHeader>
+                    <CardTitle className="text-2xl">Head to Head Comparison</CardTitle>
+                    <CardDescription>
+                        Compare performance between four players
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit}>
+                        {/* first team */}
+                        <div className={`${style.firstTeam} grid gap-4 items-end grid-cols-2 pb-5 mb-3`}>
+                            {/* Player 1 */}
+                            <div className="gird gap-2 flex flex-col">
+                                <Label htmlFor="player1">Player 1</Label>
+                                <Combobox
+                                    data={getAvailablePlayers(formData.firstPlayer)}
+                                    onOpenChange={setOpen}
+                                    onValueChange={
+                                        (val) => handleSelect("firstPlayer", val)
+                                    }
 
-                {selectedPlayer1 && selectedPlayer2 && (
-                    <div className="space-y-6">
-                        {(() => {
-                            const stats = getHeadToHeadStats(selectedPlayer1, selectedPlayer2);
-                            const player1Data = players.find(p => p.name === selectedPlayer1);
-                            const player2Data = players.find(p => p.name === selectedPlayer2);
+                                    type="player"
+                                    value={formData.firstPlayer}
+                                >
+                                    <ComboboxTrigger className="w-full sm:w-[300px]" />
+                                    <ComboboxContent>
+                                        <ComboboxInput />
+                                        <ComboboxEmpty />
+                                        <ComboboxList>
+                                            <ComboboxGroup>
+                                                {getAvailablePlayers(formData.firstPlayer).map((player) => (
+                                                    <ComboboxItem key={player.value} value={player.value}>
+                                                        {player.label}
+                                                    </ComboboxItem>
+                                                ))}
+                                            </ComboboxGroup>
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
 
-                            return (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <Card className="text-center border-blue-200 bg-blue-50">
-                                            <CardContent className="pt-6">
-                                                <div className="text-3xl font-bold text-blue-600">{stats.player1Wins}</div>
-                                                <p className="text-sm text-slate-600">{selectedPlayer1} Wins</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card className="text-center border-slate-200">
-                                            <CardContent className="pt-6">
-                                                <div className="text-3xl font-bold text-slate-600">{stats.totalMatches}</div>
-                                                <p className="text-sm text-slate-600">Total Matches</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card className="text-center border-orange-200 bg-orange-50">
-                                            <CardContent className="pt-6">
-                                                <div className="text-3xl font-bold text-orange-600">{stats.player2Wins}</div>
-                                                <p className="text-sm text-slate-600">{selectedPlayer2} Wins</p>
-                                            </CardContent>
-                                        </Card>
+                            <div className="gird gap-2 flex flex-col">
+                                <Label htmlFor="player2">Player 2</Label>
+                                <Combobox
+                                    data={getAvailablePlayers(formData.secPlayer)}
+                                    onOpenChange={setOpen}
+                                    onValueChange={
+                                        (val) => handleSelect("secPlayer", val)
+                                    }
+
+                                    type="player"
+                                    value={formData.secPlayer}
+                                >
+                                    <ComboboxTrigger className="w-full sm:w-[300px]" />
+                                    <ComboboxContent>
+                                        <ComboboxInput />
+                                        <ComboboxEmpty />
+                                        <ComboboxList>
+                                            <ComboboxGroup>
+                                                {getAvailablePlayers(formData.secPlayer).map((player) => (
+                                                    <ComboboxItem key={player.value} value={player.value}>
+                                                        {player.label}
+                                                    </ComboboxItem>
+                                                ))}
+                                            </ComboboxGroup>
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
+                        </div>
+                        {/* second team */}
+                        <div className={`${style.secTeam} grid gap-4 items-end grid-cols-2 pb-5 mb-5`}>
+                            {/* Player 3 */}
+                            <div className="gird gap-2 flex flex-col">
+                                <Label htmlFor="player1">Player 3</Label>
+                                <Combobox
+                                    data={getAvailablePlayers(formData.thirdPlayer)}
+                                    onOpenChange={setOpen}
+                                    onValueChange={
+                                        (val) => handleSelect("thirdPlayer", val)
+                                    }
+
+                                    type="player"
+                                    value={formData.thirdPlayer}
+                                >
+                                    <ComboboxTrigger className="w-full sm:w-[300px]" />
+                                    <ComboboxContent>
+                                        <ComboboxInput />
+                                        <ComboboxEmpty />
+                                        <ComboboxList>
+                                            <ComboboxGroup>
+                                                {getAvailablePlayers(formData.thirdPlayer).map((player) => (
+                                                    <ComboboxItem key={player.value} value={player.value}>
+                                                        {player.label}
+                                                    </ComboboxItem>
+                                                ))}
+                                            </ComboboxGroup>
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
+                            {/* Player 4 */}
+                            <div className="gird gap-2 flex flex-col">
+                                <Label htmlFor="player2">Player 4</Label>
+                                <Combobox
+                                    data={getAvailablePlayers(formData.fourthPlayer)}
+                                    onOpenChange={setOpen}
+                                    onValueChange={
+                                        (val) => handleSelect("fourthPlayer", val)
+                                    }
+
+                                    type="player"
+                                    value={formData.fourthPlayer}
+                                >
+                                    <ComboboxTrigger className="w-full sm:w-[300px]" />
+                                    <ComboboxContent>
+                                        <ComboboxInput />
+                                        <ComboboxEmpty />
+                                        <ComboboxList>
+                                            <ComboboxGroup>
+                                                {getAvailablePlayers(formData.fourthPlayer).map((player) => (
+                                                    <ComboboxItem key={player.value} value={player.value}>
+                                                        {player.label}
+                                                    </ComboboxItem>
+                                                ))}
+                                            </ComboboxGroup>
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <Button
+                                disabled={checkRequire()}
+                                className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                            >
+                                {isLoading ? <Spinner /> : "Search"}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+
+            {
+                isLoading ? <Spinner /> :
+                    <Card className="bg-white shadow-lg border-0">
+                        {headToHeadMatches.historyByTeam.matchesPlayed === 0 ?
+                            <CardHeader>
+                                <CardTitle className="text-2xl text-center">No results</CardTitle>
+                            </CardHeader> :
+                            <CardContent>
+                                <div className="flex">
+                                    <div className={`flex flex-col pb-5 mb-3 flex-1 justify-around`}>
+                                        <div className={`py-4 flex items-center`}>
+                                            <Avatar className="size-16 mr-5">
+                                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                                <AvatarFallback>CN</AvatarFallback>
+                                            </Avatar>
+                                            <div className="">
+                                                <Label className="text-2xl"> {playerSelected.firstPlayer}</Label>
+                                            </div>
+                                        </div>
+
+                                        <div className={`${style.playerInfo} py-4 flex items-center`}>
+                                            <Avatar className="size-16 mr-5">
+                                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                                <AvatarFallback>CN</AvatarFallback>
+                                            </Avatar>
+                                            <div className="">
+                                                <Label className="text-2xl"> {playerSelected.secPlayer}</Label>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>{selectedPlayer1}</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-3">
-                                                    <div className="flex justify-between">
-                                                        <span>Overall Win Rate</span>
-                                                        <span className="font-semibold">{player1Data?.winRate.toFixed(1)}%</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Total Wins</span>
-                                                        <span className="font-semibold">{player1Data?.wins}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Total Matches</span>
-                                                        <span className="font-semibold">{player1Data?.totalMatches}</span>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                    {/* <div className={`p-5`}>
+                                        <div className={`${style.titleMatches} text-center`}>
+                                            <Label>Matches PLayed</Label>
+                                            <p>{headToHeadMatches.historyByTeam.matchesPlayed}</p>
+                                        </div>
+                                        <div className={`${style.titleMatches} text-center flex`}>
+                                            <p className="text-xl font-semibold">{headToHeadMatches.historyByTeam.firstTeamPairWins}</p>
+                                            <Label className="px-5 font-mono text-xl font-semibold">Win Difference</Label>
+                                            <p className="text-xl font-semibold">{headToHeadMatches.historyByTeam.secTeamPairWins}</p>
+                                        </div>
 
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>{selectedPlayer2}</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-3">
-                                                    <div className="flex justify-between">
-                                                        <span>Overall Win Rate</span>
-                                                        <span className="font-semibold">{player2Data?.winRate.toFixed(1)}%</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Total Wins</span>
-                                                        <span className="font-semibold">{player2Data?.wins}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Total Matches</span>
-                                                        <span className="font-semibold">{player2Data?.totalMatches}</span>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        <div className={`${style.titleMatches} text-center flex`}>
+                                            <p className="text-xl font-semibold">{`${headToHeadMatches.historyByTeam.winRateFirstTeamPair}%`}</p>
+                                            <Label className="px-5 font-mono text-xl font-semibold">Win Rate</Label>
+                                            <p className="text-xl font-semibold">{`${headToHeadMatches.historyByTeam.winRateSecTeamPair}%`}</p>
+                                        </div>
+
+                                    </div> */}
+
+                                    <div className={`flex flex-col content pb-5 mb-3 flex-1 justify-around `}>
+                                        <div className={`py-4 flex items-center flex-row-reverse`}>
+                                            <Avatar className="size-16 ml-5">
+                                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                                <AvatarFallback>CN</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Label className="text-2xl"> {playerSelected.thirdPlayer}</Label>
+                                            </div>
+                                        </div>
+
+                                         <div className={`py-4 flex items-center flex-row-reverse`}>
+                                            <Avatar className="size-16 ml-5">
+                                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                                <AvatarFallback>CN</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Label className="text-2xl"> {playerSelected.fourthPlayer}</Label>
+                                            </div>
+                                        </div>
                                     </div>
-                                </>
-                            );
-                        })()}
-                    </div>
-                )} */}
-            </CardContent>
-        </Card>
+                                </div>
+
+                            </CardContent>
+                        }
+                    </Card>
+            }
+        </>
+
     )
 }

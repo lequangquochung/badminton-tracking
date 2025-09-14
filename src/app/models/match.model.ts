@@ -9,3 +9,14 @@ export interface IMatch {
     winner: string[];
     matchDay: Date | undefined;
 }
+
+export interface IHeadToHead {
+    historyByTeam: {
+        matchesPlayed: number;
+        firstTeamPairWins: number;
+        secTeamPairWins: number;
+        winRateFirstTeamPair: string
+        winRateSecTeamPair: string;
+    }
+}
+

@@ -3,3 +3,8 @@ export interface IRequestMatch {
     page?: number;
     limit?: number;
 }
+
+export interface IRequestHeadToHead {
+    firstTeam: string[];
+    secTeam: string[];
+}

@@ -8,10 +8,9 @@ import { useEffect, useState } from "react";
 import { MatchesDto } from "../dtos/matchDto";
 import { IRequestMatch } from "../models/request.model";
 import { getAll } from "../services/matches.service";
-import { getPlayers } from "../services/players.service";
+import { E_WINNER } from "../utils/utils";
 import { isWinner } from "./component/match-history";
 import style from "./match-history.module.scss";
-import { E_WINNER } from "../utils/utils";
 
 type MatchHistoryProps = {
     activeTab: string;
@@ -80,10 +79,11 @@ export default function MatchHistory({ activeTab, onSendTotalMatch, updateNewMat
                                     key={match.id}
                                     className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
                                 >
-                                    <div className="flex-1">
+                                    <div className="flex-1 w-full">
                                         <div className="flex flex-col gap-3 mb-2">
-                                            <div className="first-team flex items-center gap-8">
-                                                <div className={`${style.playerName} flex-col`} >
+                                            <div className="flex items-center w-full">
+                                                {/* frist team */}
+                                                <div className={`${style.playerName} flex-1 truncate`} >
                                                     <p
                                                         className={clsx(
                                                             "text-slate-900",   // class default
@@ -94,22 +94,23 @@ export default function MatchHistory({ activeTab, onSendTotalMatch, updateNewMat
                                                     </p>
                                                     <p className={`${isWinner(match.firstScore, match.secScore) === E_WINNER.FIRST_TEAM ? "font-semibold" : ""} text-slate-900`}>{match.secPlayer}</p>
                                                 </div>
-                                                <div className="score">
+                                                <div className={"w-10 text-right"}>
                                                     <p className={`${isWinner(match.firstScore, match.secScore) === E_WINNER.FIRST_TEAM ? "font-semibold" : ""} text-slate-900`}>{match.firstScore}</p>
                                                 </div>
-                                                <div className="status-result">
+                                                <div className="status-result w-6 text-center">
                                                     {isWinner(match.firstScore, match.secScore) === E_WINNER.FIRST_TEAM ? <FontAwesomeIcon icon={["fas", "crown"]} style={{ color: "#fbd152" }} /> : ""}
                                                 </div>
                                             </div>
-                                            <div className="second-team flex items-center gap-8">
-                                                <div className={`${style.playerName} flex-col`} >
+                                            {/* second Team */}
+                                            <div className="second-team flex items-center w-full">
+                                                <div className={`${style.playerName} flex-1 truncate`} >
                                                     <p className={`${isWinner(match.firstScore, match.secScore) === E_WINNER.SEC_TEAM ? "font-semibold" : ""} text-slate-900`}>{match.thirdPlayer}</p>
                                                     <p className={`${isWinner(match.firstScore, match.secScore) === E_WINNER.SEC_TEAM ? "font-semibold" : ""} text-slate-900`}>{match.fourthPlayer}</p>
                                                 </div>
-                                                <div className="score">
+                                                <div className={"w-10 text-right"}>
                                                     <p className={`${isWinner(match.firstScore, match.secScore) === E_WINNER.SEC_TEAM ? "font-semibold" : ""} text-slate-900`}>{match.secScore}</p>
                                                 </div>
-                                                <div className="status-result">
+                                                <div className="status-result w-6 text-center">
                                                     {isWinner(match.firstScore, match.secScore) === E_WINNER.SEC_TEAM ? <FontAwesomeIcon icon={["fas", "crown"]} style={{ color: "#fbd152" }} /> : ""}
                                                 </div>
                                             </div>
@@ -133,7 +134,7 @@ export default function MatchHistory({ activeTab, onSendTotalMatch, updateNewMat
                             ))}
                         </div>
                     </CardContent>
-                </Card>
+                </Card >
             }
         </>
     )

@@ -4,6 +4,7 @@ import { Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlayerDto } from "../dtos/playerDto";
 import { getPlayers } from "../services/players.service";
+import style from "./players-ranking.module.scss";
 
 type PlayersProps = {
     activeTab: string;
@@ -51,7 +52,10 @@ export default function Players({ activeTab }: PlayersProps) {
                                 .map((player, index) => (
                                     < div
                                         key={player.id}
-                                        className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                                        className={`${index === 0 ? style.topPlayer : ""} 
+                                        ${index === 1 ? style.secPlayer : ""}
+                                        ${index === 2 ? style.thirdPlayer : ""}
+                                         flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200`}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
@@ -64,7 +68,9 @@ export default function Players({ activeTab }: PlayersProps) {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-2xl font-bold text-slate-900">{parseFloat(player.winRate).toFixed(2)}%</div>
+                                            <div className={`${parseInt(player.winRate) < 30 ? style.lowWinRate : ""} 
+                                            ${parseInt(player.winRate) >= 75 ? style.winRateAboveFiftyPercent : ""}
+                                             text-2xl font-bold text-slate-900`}>{parseFloat(player.winRate).toFixed(2)}%</div>
                                             <div className="text-sm text-slate-600">
                                                 {player.matchesWon}W - {player.matchesLost}L
                                             </div>
