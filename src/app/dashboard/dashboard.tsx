@@ -173,10 +173,10 @@ export default function Dashboard() {
                         value={formData.firstPlayer}
                         onValueChange={(val) => handleChange("firstPlayer", val)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[150px]">
                           <SelectValue placeholder="Select player 1" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="w-[150px]">
                           {getAvailablePlayers("firstPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -192,10 +192,10 @@ export default function Dashboard() {
                         value={formData.secPlayer}
                         onValueChange={(val) => handleChange("secPlayer", val)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[150px]">
                           <SelectValue placeholder="Select player 2" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="w-[150px]">
                           {getAvailablePlayers("secPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -214,10 +214,10 @@ export default function Dashboard() {
                         value={formData.thirdPlayer}
                         onValueChange={(val) => handleChange("thirdPlayer", val)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[150px]">
                           <SelectValue placeholder="Select player 3" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="w-[150px]">
                           {getAvailablePlayers("thirdPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -233,10 +233,10 @@ export default function Dashboard() {
                         value={formData.fourthPlayer}
                         onValueChange={(val) => handleChange("fourthPlayer", val)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[150px]">
                           <SelectValue placeholder="Select player 4" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="w-[150px]">
                           {getAvailablePlayers("fourthPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
