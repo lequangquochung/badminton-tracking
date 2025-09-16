@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { PlayerDto } from "../dtos/playerDto";
 import { getPlayers } from "../services/players.service";
 import style from "./players-ranking.module.scss";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { IRequestPlayer } from "../models/request.model";
 
 type PlayersProps = {
     activeTab: string;
@@ -13,11 +16,31 @@ type PlayersProps = {
 export default function Players({ activeTab }: PlayersProps) {
     const [loading, setLoading] = useState(false);
     const [players, setPlayers] = useState<PlayerDto[]>([]);
+    const [selectedGender, setSelectedGender] = useState<string>("");
+    const genders = ["all", "male", "female"];
 
     // get players 
-    const getAllPlayer = async () => {
+    const getAllPlayer = async (payload: IRequestPlayer) => {
         try {
-            const result = await getPlayers();
+            const result = await getPlayers(payload);
+            setLoading(true);
+            setPlayers(result);
+        } catch (error) {
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const getRankingByGender = async (value: string) => {
+        try {
+            setSelectedGender(value);
+            const payload: IRequestPlayer = {
+                gender: value === "all" ? "" : value,
+                limit: 99,
+                page: 1,
+                search: ""
+            }
+            const result = await getPlayers(payload);
             setLoading(true);
             setPlayers(result);
         } catch (error) {
@@ -27,10 +50,18 @@ export default function Players({ activeTab }: PlayersProps) {
     }
 
     useEffect(() => {
-        if (activeTab === "players") {
-            getAllPlayer();
+        const payload: IRequestPlayer = {
+            gender: selectedGender,
+            limit: 99,
+            page: 1,
+            search: ""
         }
-        getAllPlayer();
+
+        if (activeTab === "players") {
+            getAllPlayer(payload);
+            return;
+        }
+        getAllPlayer(payload);
     }, [activeTab])
 
     return (
@@ -40,6 +71,21 @@ export default function Players({ activeTab }: PlayersProps) {
                     <CardHeader>
                         <CardTitle className="text-2xl">Player Rankings</CardTitle>
                         <CardDescription>Player statistics and performance overview</CardDescription>
+                        <div className="w-1/3 mt-4">
+                            <Label className="pb-2">Gender</Label>
+                            <Select defaultValue="all" onValueChange={(value) => getRankingByGender(value)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {genders.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>
+                                            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4">

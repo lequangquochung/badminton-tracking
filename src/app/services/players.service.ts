@@ -1,9 +1,16 @@
 import { PlayerDto } from "../dtos/playerDto";
 import { IPlayer } from "../models/player.model";
+import { IRequestPlayer } from "../models/request.model";
 
-export async function getPlayers(): Promise<PlayerDto[]> {
+export async function getPlayers(payload: IRequestPlayer): Promise<PlayerDto[]> {
     try {
-        const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players`);
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/list`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
         if (!result.ok) {
             throw new Error(`API call failed with status: ${result.status}`);
         }

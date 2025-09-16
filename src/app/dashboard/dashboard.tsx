@@ -23,6 +23,7 @@ import Players from '../players/players';
 import { createMatch } from '../services/matches.service';
 import { getPlayers } from '../services/players.service';
 import { E_STATUS_CODE, E_WINNER } from '../utils/utils';
+import { IRequestPlayer } from '../models/request.model';
 
 
 export default function Dashboard() {
@@ -77,7 +78,7 @@ export default function Dashboard() {
       winner.push(formData.thirdPlayer, formData.fourthPlayer);
     }
     formData.winner = winner;
-    
+
     const result = await createMatch(formData);
     if (result?.statusCode === E_STATUS_CODE.CREATED) {
       setIsDialogOpen(false);
@@ -122,7 +123,13 @@ export default function Dashboard() {
   const [playerCount, setPlayerCount] = useState(0);
   const getAllPlayer = async () => {
     try {
-      const result = await getPlayers();
+      const payload: IRequestPlayer = {
+        gender: "",
+        limit: 99,
+        page: 1,
+        search: ""
+      }
+      const result = await getPlayers(payload);
       setPlayers(result);
       setPlayerCount(result.length || 0);
     } catch (error) { }

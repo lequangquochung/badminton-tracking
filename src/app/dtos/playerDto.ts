@@ -7,4 +7,5 @@ export interface PlayerDto {
     matchesWon: number;
     matchesLost: number;
     partnerInfo: [];
+    gender: string;
 }
