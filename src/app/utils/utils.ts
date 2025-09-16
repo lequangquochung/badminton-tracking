@@ -4,5 +4,6 @@ export enum E_WINNER {
 }
 
 export enum E_STATUS_CODE {
-    OK = 200
+    OK = 200,
+    CREATED = 201
 }

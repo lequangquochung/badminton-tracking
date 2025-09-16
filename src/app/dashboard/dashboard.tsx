@@ -22,7 +22,7 @@ import { IMatch } from '../models/match.model';
 import Players from '../players/players';
 import { createMatch } from '../services/matches.service';
 import { getPlayers } from '../services/players.service';
-import { E_WINNER } from '../utils/utils';
+import { E_STATUS_CODE, E_WINNER } from '../utils/utils';
 
 
 export default function Dashboard() {
@@ -79,7 +79,7 @@ export default function Dashboard() {
     formData.winner = winner;
     
     const result = await createMatch(formData);
-    if (result?.statusCode === 200) {
+    if (result?.statusCode === E_STATUS_CODE.CREATED) {
       setIsDialogOpen(false);
       setIsLoading(false);
       setFormData(initialForm);
