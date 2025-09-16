@@ -73,14 +73,19 @@ export default function MatchHistory({ activeTab, onSendTotalMatch, updateNewMat
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {matches.map((match) => (
+                            {matches.map((match, index) => (
                                 <div
                                     key={match.id}
                                     className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
                                 >
+
                                     <div className="flex-1 w-full">
+                                        <div>
+                                            {`#${index + 1}`}
+                                        </div>
                                         <div className="flex flex-col gap-3 mb-2">
                                             <div className="flex items-center w-full">
+
                                                 {/* frist team */}
                                                 <div className={`${style.playerName} flex-1 truncate`} >
                                                     <p
