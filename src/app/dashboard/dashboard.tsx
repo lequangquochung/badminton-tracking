@@ -22,12 +22,12 @@ import { IMatch } from '../models/match.model';
 import Players from '../players/players';
 import { createMatch } from '../services/matches.service';
 import { getPlayers } from '../services/players.service';
-import { E_STATUS_CODE, E_WINNER } from '../utils/utils';
+import { E_MATCH_TYPE, E_STATUS_CODE, E_WINNER } from '../utils/utils';
 import { IRequestPlayer } from '../models/request.model';
 
 
 export default function Dashboard() {
-  // init
+  // init tab
   const [activeTab, setActiveTab] = useState("history");
   // get total match
   const [totalMatch, setTotalMatch] = useState<number>();
@@ -53,6 +53,7 @@ export default function Dashboard() {
     secScore: 0,
     matchDay: new Date(),
     winner: [],
+    type: ""
   });
 
   const initialForm: IMatch = {
@@ -64,7 +65,10 @@ export default function Dashboard() {
     secScore: 0,
     winner: [],
     matchDay: new Date(),
+    type: E_MATCH_TYPE.MD
   };
+
+  const matchType = [E_MATCH_TYPE.MD, E_MATCH_TYPE.WD, E_MATCH_TYPE.XD]
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCreatedMatch, setIsCreatedMatch] = useState<boolean>(false);
@@ -278,6 +282,24 @@ export default function Dashboard() {
                         placeholder="0"
                       />
                     </div>
+                  </div>
+                  <div className="grid gap-2 mb-5">
+                    <Label>Type</Label>
+                    <Select defaultValue={E_MATCH_TYPE.MD} onValueChange={(valueType) => setFormData((prev) => ({
+                      ...prev,
+                      type: valueType
+                    }))}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {matchType.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="grid gap-2 mb-5">

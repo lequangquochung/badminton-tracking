@@ -8,6 +8,7 @@ export interface IMatch {
     secScore: number;
     winner: string[];
     matchDay: Date | undefined;
+    type?: string;
 }
 
 export interface IHeadToHead {

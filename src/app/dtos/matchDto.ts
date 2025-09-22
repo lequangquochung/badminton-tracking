@@ -8,4 +8,5 @@ export interface MatchesDto {
     secScore: number;
     winner: string[];
     matchDay: Date;
+    type?: string;
 }

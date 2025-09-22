@@ -7,3 +7,9 @@ export enum E_STATUS_CODE {
     OK = 200,
     CREATED = 201
 }
+
+export enum E_MATCH_TYPE {
+    MD ="MD",
+    XD ="XD",
+    WD ="WD"
+}
