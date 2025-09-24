@@ -184,10 +184,10 @@ export default function Dashboard() {
                         value={formData.firstPlayer}
                         onValueChange={(val) => handleChange("firstPlayer", val)}
                       >
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select player 1" />
                         </SelectTrigger>
-                        <SelectContent className="w-[150px]">
+                        <SelectContent className="w-full">
                           {getAvailablePlayers("firstPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -203,10 +203,10 @@ export default function Dashboard() {
                         value={formData.secPlayer}
                         onValueChange={(val) => handleChange("secPlayer", val)}
                       >
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select player 2" />
                         </SelectTrigger>
-                        <SelectContent className="w-[150px]">
+                        <SelectContent className="w-full">
                           {getAvailablePlayers("secPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -225,10 +225,10 @@ export default function Dashboard() {
                         value={formData.thirdPlayer}
                         onValueChange={(val) => handleChange("thirdPlayer", val)}
                       >
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select player 3" />
                         </SelectTrigger>
-                        <SelectContent className="w-[150px]">
+                        <SelectContent className="w-full">
                           {getAvailablePlayers("thirdPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
@@ -244,10 +244,10 @@ export default function Dashboard() {
                         value={formData.fourthPlayer}
                         onValueChange={(val) => handleChange("fourthPlayer", val)}
                       >
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select player 4" />
                         </SelectTrigger>
-                        <SelectContent className="w-[150px]">
+                        <SelectContent className="w-full">
                           {getAvailablePlayers("fourthPlayer").map((p) => (
                             <SelectItem key={p.id} value={p.name}>
                               {p.name}
